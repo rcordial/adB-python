@@ -94,7 +94,8 @@ def executeQuery():
             print("\n--- execution time in seconds : %s ---" % (time.time() - start_time))
 
             print("\n additional results:")
-
+            # print(resultsTable)
+            # if(str(resultsTable)!=str('null')):
             display_results_window(resultsTable)
 
 
@@ -155,7 +156,7 @@ def display_results_window(resultsTable):
             e.configure(state='readonly')
             cols.append(e)
 
-            if idx > 40:
+            if idx > 100:
                 e = Entry(myframe, relief=RIDGE)
                 e.grid(row=idx + 1, column=index, sticky=NSEW)
                 e.insert(END, 'too many to display')

@@ -18,7 +18,7 @@ def dataTypeChecker(column):
     dataType['Degree'] = 'varchar'
     dataType['Major'] = 'varchar'
     dataType['UnitsEarned'] = 'int'
-    dataType['Desciption'] = 'varchar'
+    dataType['Description'] = 'varchar'
     dataType['Action'] = 'varchar'
     dataType['DateFiled'] = 'date'
     dataType['DateResolved'] = 'date'
@@ -104,12 +104,12 @@ def selectQuery(tableName,columns,whereClause,orderby):
                             if len(tokens) != 2 :
                                 raise Exception('invalid format')
                             else :
-                                tok1 = int(tokens[0])
-                                tok2 = int(tokens[1])
-                                if len(str(tok1)) != 4:
+                                tok1 = tokens[0]
+                                tok2 = tokens[1]
+                                if len(str(tok1)) >6:
                                     raise Exception('invalid format')
                                 else:
-                                    if len(str(tok2)) != 4:
+                                    if len(str(tok2)) > 6:
                                         raise Exception('invalid format')
                                 validateTime(tok1)
                                 validateTime(tok2)
@@ -366,6 +366,7 @@ def insertDataTypeChecker(table,columns,values):
 
         for value in values:
             counter = counter + 1
+            value= value.strip()
             if dataTypeChecker(columns[counter]) == 'int':
                 int(value)
             elif dataTypeChecker(columns[counter]) == 'varchar':
@@ -379,10 +380,10 @@ def insertDataTypeChecker(table,columns,values):
                         else :
                             tok1 = tokens[0]
                             tok2 = tokens[1]
-                            if len(str(tok1)) != 4:
+                            if len(str(tok1)) > 6:
                                 raise Exception('invalid format')
                             else:
-                                if len(str(tok2)) != 4:
+                                if len(str(tok2)) > 6:
                                     raise Exception('invalid format')
                             validateTime(tok1)
                             validateTime(tok2)
@@ -438,7 +439,7 @@ def insertDataTypeChecker(table,columns,values):
 
 
     except Exception as error:
-        print(error)
+        # print(error)
         if(str(error)=='StudNo already exists.'):
             print(error)
         elif(str(error)=='CNo already exists.'):
@@ -497,7 +498,22 @@ def deleteQuery(tableName, whereClause):
         if whereClause[2] == '=':
             if dataTypeChecker(whereClause[1]) == 'int':
                 tableData= tableData.loc[tableData[whereClause[1]].astype(float) != int(newStr)]#.head()
-
+            elif dataTypeChecker(whereClause[1]) == 'id':
+                if '-' in newStr:
+                    tokens = newStr.split('-')
+                    if len(tokens) != 2:
+                        raise Exception('invalid format')
+                    else:
+                        tok1 = int(tokens[0])
+                        tok2 = int(tokens[1])
+                        if len(str(tok1)) != 4:
+                            raise Exception('invalid format')
+                        else:
+                            if len(str(tok2)) != 5:
+                                raise Exception('invalid format')
+                        # tableData = tableData[tableData[whereClause[1]] == newStr]  # .head()
+                        # print(tableData[columns].replace(np.nan, '', regex=True))
+                        tableData = tableData.loc[tableData[whereClause[1]] != newStr]  # .head()
             else:
                 tableData= tableData.loc[tableData[whereClause[1]] != newStr]#.head()
 

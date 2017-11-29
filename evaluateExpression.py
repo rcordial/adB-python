@@ -6,7 +6,7 @@ from DBEngine import dbGetSet
 
 
 
-locStudent = './data/STUDENT.csv'
+locStudent = './data/STUDENTx.csv'
 studentDB = pd.read_csv(locStudent)
 studentDB1 = dbGetSet(studentDB)
 
@@ -19,7 +19,7 @@ locCourseOffering = './data/COURSEOFFERING.csv'
 CourseOfferingDB = pd.read_csv(locCourseOffering)
 CourseOfferingDB1 = dbGetSet(CourseOfferingDB)
 
-locStudCourse = './data/STUDCOURSE.csv'
+locStudCourse = './data/STUDCOURSEx.csv'
 studCourseDB = pd.read_csv(locStudCourse)
 studCourseDB1 = dbGetSet(studCourseDB)
 
@@ -58,14 +58,14 @@ def evaluateQuery(query):
 
     resultsTable = 'null'
 
-    if query[0] == 'select':
+    if query[0].lower() == 'select':
         resultsTable = selectQuery(query)
 
 
-    elif query[0] == 'insert':
+    elif query[0].lower() == 'insert':
         insertQuery(query)
 
-    elif query[0] == 'delete':
+    elif query[0].lower() == 'delete':
         deleteQuery(query)
 
     return resultsTable
