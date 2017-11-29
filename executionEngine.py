@@ -18,7 +18,7 @@ def dataTypeChecker(column):
     dataType['Degree'] = 'varchar'
     dataType['Major'] = 'varchar'
     dataType['UnitsEarned'] = 'int'
-    dataType['Desciption'] = 'varchar'
+    dataType['Description'] = 'varchar'
     dataType['Action'] = 'varchar'
     dataType['DateFiled'] = 'date'
     dataType['DateResolved'] = 'date'
@@ -31,7 +31,7 @@ def dataTypeChecker(column):
     dataType['Semester'] = 'varchar'
     dataType['AcadYear'] = 'varchar'
     dataType['Section'] = 'varchar'
-    dataType['Time'] = 'time'
+    dataType['Time'] = 'varchar'
     dataType['MaxStud'] = 'int'
     typeData = dataType[column]
 
@@ -44,21 +44,21 @@ def getColumns(tableName):
     table['STUDENTHISTORY'] =['StudNo','Description','Action','DateFiled','DateResolved']
     table['COURSE'] =['CNo','CTitle', 'CDesc','NoOfUnits','HasLab','SemOffered']
     table['COURSEOFFERING'] = ['Semester','AcadYear','CNo','Section','Time','MaxStud']
-    table['STUDCOURSE'] = ['StudNo','CNo','CDesc','Semester','AcadYear']
+    table['STUDCOURSE'] = ['StudNo','CNo','Semester','AcadYear']
     cols = table[tableName]
     return cols
 
 def lengthChecker(query):
     return len(query)
 
-def selectQuery(tableName,columns,whereClause,orderby):
+def selectQuery(tableName,columns,whereClause,orderby):	
     tableData = evaluateExpression.setData(tableName,[],True)
     table = {}
     table['STUDENT'] = ['StudNo', 'StudentName','Birthday','Degree','Major','UnitsEarned']
     table['STUDENTHISTORY'] =['StudNo','Description','Action','DateFiled','DateResolved']
     table['COURSE'] =['CNo','CTitle', 'CDesc','NoOfUnits','HasLab','SemOffered']
     table['COURSEOFFERING'] = ['Semester','AcadYear','CNo','Section','Time','MaxStud']
-    table['STUDCOURSE'] = ['StudNo','CNo','CDesc','Semester','AcadYear']
+    table['STUDCOURSE'] = ['StudNo','CNo','Semester','AcadYear']
     cols = table[tableName]
 
 
@@ -92,7 +92,6 @@ def selectQuery(tableName,columns,whereClause,orderby):
 
 
             if whereClause[2] == '=':
-
                 if dataTypeChecker(whereClause[1]) == 'int':
                     tableData= tableData[tableData[whereClause[1]].astype(float) == int(newStr)]#.head()
                     print(tableData[columns].replace(np.nan, '', regex=True))
@@ -100,8 +99,45 @@ def selectQuery(tableName,columns,whereClause,orderby):
                     if len(newStr) > 50 :
                         print('values must be less than 50 characters')
                     else:
-                        tableData= tableData[tableData[whereClause[1]] == newStr]#.head()
-                        print(tableData[columns].replace(np.nan, '', regex=True))
+                        if '-' in newStr:
+                            tokens = newStr.split('-')
+                            if len(tokens) != 2 :
+                                raise Exception('invalid format')
+                            else :
+                                tok1 = tokens[0]
+                                tok2 = tokens[1]
+                                if len(str(tok1)) >6:
+                                    raise Exception('invalid format')
+                                else:
+                                    if len(str(tok2)) > 6:
+                                        raise Exception('invalid format')
+                                validateTime(tok1)
+                                validateTime(tok2)
+                                tableData= tableData[tableData[whereClause[1]] == newStr]#.head()
+                                print(tableData[columns].replace(np.nan, '', regex=True))
+                        else:
+                            tableData= tableData[tableData[whereClause[1]] == newStr]#.head()
+                            print(tableData[columns].replace(np.nan, '', regex=True))
+                elif dataTypeChecker(whereClause[1]) == 'id':
+                    if '-' in newStr:
+                        tokens = newStr.split('-')
+                        if len(tokens) != 2 :
+                            raise Exception('invalid format')
+                        else :
+                            tok1 = int(tokens[0])
+                            tok2 = int(tokens[1])
+                            if len(str(tok1)) != 4:
+                                raise Exception('invalid format')
+                            else:
+                                if len(str(tok2)) != 5:
+                                    raise Exception('invalid format')
+                            tableData= tableData[tableData[whereClause[1]] == newStr]#.head()
+                            print(tableData[columns].replace(np.nan, '', regex=True))
+                elif dataTypeChecker(whereClause[1])== 'date' or  dataTypeChecker(whereClause[1])== 'time':
+                    tableData= tableData[tableData[whereClause[1]] == newStr]#.head()
+                    print(tableData[columns].replace(np.nan, '', regex=True))
+                else:
+                    raise Exception('invalid format')
 
             elif whereClause[2] == '<':
 
@@ -266,6 +302,7 @@ def selectQuery(tableName,columns,whereClause,orderby):
                         print(tableData[columns].replace(np.nan, '', regex=True))
     return tableData
 
+
 def splitWhereQ(query):
 
     targets = ['where', 'or', 'and']
@@ -320,21 +357,56 @@ def insertDataTypeChecker(table,columns,values):
     if len(columns) == 0 :
         columns = getColumns(table)
     counter =-1
+
+    cno=''
+    semester=''
+    acadyear=''
+    section=''
     try:
-
-
 
         for value in values:
             counter = counter + 1
+            value= value.strip()
             if dataTypeChecker(columns[counter]) == 'int':
                 int(value)
             elif dataTypeChecker(columns[counter]) == 'varchar':
                 if len(value) > 50:
                     raise Exception('must be of 50 charcaters or less')
+                else:
+                    if '-' in value:
+                        tokens = value.split('-')
+                        if len(tokens) != 2 :
+                            raise Exception('invalid format')
+                        else :
+                            tok1 = tokens[0]
+                            tok2 = tokens[1]
+                            if len(str(tok1)) > 6:
+                                raise Exception('invalid format')
+                            else:
+                                if len(str(tok2)) > 6:
+                                    raise Exception('invalid format')
+                            validateTime(tok1)
+                            validateTime(tok2)
+                if (columns[counter]=='CNo' and table=='COURSE'):
+
+                    tableData = evaluateExpression.setData(table,[],True)
+                    # tableData= tableData[tableData[columns[counter]].astype(float) == int(value)]
+                    tableData= tableData[tableData[columns[counter]] == value]#.head()
+                    cno=value
+                    if(tableData.shape[0]>0):
+                        raise Exception('CNo already exists.')
+                if (columns[counter]=='Semester'):
+                    semester=value
+                if (columns[counter]=='AcadYear'):
+                    acadyear=value
+                if (columns[counter]=='Section'):
+                    section=value
+
             elif dataTypeChecker(columns[counter]) == 'date':
-                datetime.datetime.strptime(value, '%Y-%m-%d')
+                datetime.datetime.strptime(value.strip(), '%Y-%m-%d')
             elif dataTypeChecker(columns[counter]) == 'enum':
                 values = ['1st','2nd','Sum']
+                value= value.strip()
                 if not (value in values):
                     raise Exception('Acceptable values are { 1st, 2nd , Sum }' )
 
@@ -354,22 +426,39 @@ def insertDataTypeChecker(table,columns,values):
                         else:
                             if len(str(tok2)) != 5:
                                 raise Exception('invalid format')
+                    tableData = evaluateExpression.setData(table,[],True)
+                    tableData= tableData[tableData[columns[counter]] == value]#.head()
+                    # print('\nNumber of rows returned: ' + str(tableData.shape[0]))
+                    if(tableData.shape[0]>0):
+                        raise Exception('StudNo already exists.')
+
+                    # print(tableData[columns].replace(np.nan, '', regex=True))
                 else:
                     raise Exception('invalid format')
+        # if (table=='COURSEOFFERING'):
+
 
     except Exception as error:
-        if dataTypeChecker(columns[counter]) == 'int':
-            print("value { "+ value +" } must be of  { int } format for the column { "+ columns[counter] +" } ")
-        elif dataTypeChecker(columns[counter]) == 'varchar':
-            print ('value {' + value + ' } must be 50 characters or less')
-        elif dataTypeChecker(columns[counter])  == 'date':
-            print('value {' + value + ' } must be in { YYYY-MM-DD } format')
-        elif dataTypeChecker(columns[counter])  == 'time':
-            print('value { ' + value + ' } must be in { H:M } format')
-        elif dataTypeChecker(columns[counter])  == 'id':
-            print('Student Number value { ' + value + ' } must be in { YYYY-XXXXX } format')
-        elif dataTypeChecker(columns[counter])  == 'enum':
-            print('Acceptable values are { 1st, 2nd , Sum }' )
+        # print(error)
+        if(str(error)=='StudNo already exists.'):
+            print(error)
+        elif(str(error)=='CNo already exists.'):
+            print(error)
+        elif(str(error)=='Incorrect time format, should be H:M'):
+            print(error)
+        else:
+            if dataTypeChecker(columns[counter]) == 'int':
+                print("value { "+ value +" } must be of  { int } format for the column { "+ columns[counter] +" } ")
+            elif dataTypeChecker(columns[counter]) == 'varchar':
+                print ('value {' + value + ' } must be 50 characters or less')
+            elif dataTypeChecker(columns[counter])  == 'date':
+                print('value {' + value + ' } must be in { YYYY-MM-DD } format')
+            elif dataTypeChecker(columns[counter])  == 'time':
+                print('value { ' + value + ' } must be in { H:M } format')
+            elif dataTypeChecker(columns[counter])  == 'id':
+                print('Student Number value { ' + value + ' } must be in { YYYY-XXXXX } format')
+            elif dataTypeChecker(columns[counter])  == 'enum':
+                print('Acceptable values are { 1st, 2nd , Sum }' )
 
 def insertQuery(table,columns, values):
     tableData = evaluateExpression.setData(table,[],True)
@@ -395,13 +484,36 @@ def insertQuery(table,columns, values):
 
 def deleteQuery(tableName, whereClause):
     tableData = evaluateExpression.setData(tableName,[], True)
-    if len(whereClause) == 4 :
+    print(whereClause)
+
+    if len(whereClause) == 0 :
+        columns = getColumns(tableName)
+        tableData= pd.DataFrame(columns=columns)#tableData.loc[tableData]
+        evaluateExpression.setData(tableName,tableData,False)
+
+
+    elif len(whereClause) == 4 :
         newStr = whereClause[3].replace("'",'')
         newStr = newStr.replace('"','')
         if whereClause[2] == '=':
             if dataTypeChecker(whereClause[1]) == 'int':
                 tableData= tableData.loc[tableData[whereClause[1]].astype(float) != int(newStr)]#.head()
-
+            elif dataTypeChecker(whereClause[1]) == 'id':
+                if '-' in newStr:
+                    tokens = newStr.split('-')
+                    if len(tokens) != 2:
+                        raise Exception('invalid format')
+                    else:
+                        tok1 = int(tokens[0])
+                        tok2 = int(tokens[1])
+                        if len(str(tok1)) != 4:
+                            raise Exception('invalid format')
+                        else:
+                            if len(str(tok2)) != 5:
+                                raise Exception('invalid format')
+                        # tableData = tableData[tableData[whereClause[1]] == newStr]  # .head()
+                        # print(tableData[columns].replace(np.nan, '', regex=True))
+                        tableData = tableData.loc[tableData[whereClause[1]] != newStr]  # .head()
             else:
                 tableData= tableData.loc[tableData[whereClause[1]] != newStr]#.head()
 

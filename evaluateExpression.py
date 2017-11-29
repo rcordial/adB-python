@@ -6,7 +6,7 @@ from DBEngine import dbGetSet
 
 
 
-locStudent = './data/STUDENT.csv'
+locStudent = './data/STUDENTx.csv'
 studentDB = pd.read_csv(locStudent)
 studentDB1 = dbGetSet(studentDB)
 
@@ -19,7 +19,7 @@ locCourseOffering = './data/COURSEOFFERING.csv'
 CourseOfferingDB = pd.read_csv(locCourseOffering)
 CourseOfferingDB1 = dbGetSet(CourseOfferingDB)
 
-locStudCourse = './data/STUDCOURSE.csv'
+locStudCourse = './data/STUDCOURSEx.csv'
 studCourseDB = pd.read_csv(locStudCourse)
 studCourseDB1 = dbGetSet(studCourseDB)
 
@@ -56,17 +56,16 @@ def setData(tableName,data,readOnly):
 
 def evaluateQuery(query):
 
-
     resultsTable = 'null'
 
-    if query[0] == 'select':
+    if query[0].lower() == 'select':
         resultsTable = selectQuery(query)
 
 
-    elif query[0] == 'insert':
+    elif query[0].lower() == 'insert':
         insertQuery(query)
 
-    elif query[0] == 'delete':
+    elif query[0].lower() == 'delete':
         deleteQuery(query)
 
     return resultsTable
@@ -96,7 +95,6 @@ def selectQuery(query):
             where = 'null'
             orderBy = 'null'
 
-            resultsTableData = 'null'
 
             #Simple select
             if len(query) == 4:
@@ -134,13 +132,10 @@ def selectQuery(query):
                         print('Invalid column encountered in order by clause')
                     else:
                         resultsTableData = executionEngine.selectQuery(table,cols,where,orderBy)
-
-
-            return resultsTableData
+        return resultsTableData
 
     else:
         print("Invalid table " + table)
-        return 'null'
 
 
 
@@ -207,6 +202,18 @@ def deleteQuery(query):
             else:
                 where = whereDelete
                 executionEngine.deleteQuery(table,where)
+        else:
+            where =[]
+            executionEngine.deleteQuery(table,where)
+
+            #whereDelete = whereExtractor(table,query[3])
+            #if len(whereDelete) == 0:
+            #	print('Invalid column encountered in where clause')
+            #else:
+            #	where = whereDelete
+            #	executionEngine.deleteQuery(table,where)
+        #else:
+        #	print(query)
     else:
         print('invalid table ' + table)
 
